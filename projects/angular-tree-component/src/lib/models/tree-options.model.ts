@@ -154,6 +154,6 @@ export class TreeOptions {
   }
 
   get lazySelect(): boolean {
-    return this.options?.lazySelect ? this.options?.lazySelect : false;
+    return this.options.lazySelect !== undefined ? this.options.lazySelect : false;
   }
 }
