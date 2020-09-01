@@ -18,9 +18,9 @@ import every from 'lodash/every';
 
 export class TreeNode implements ITreeNode {
   private handler: IReactionDisposer;
-  private _someChildrenSelected: boolean = false;
-  private _allChildrenSelected: boolean = false;
-  private internalSelectState: boolean = false;
+  private _someChildrenSelected = false;
+  private _allChildrenSelected = false;
+  private internalSelectState = false;
 
   @computed get isHidden() {
     return this.treeModel.isHidden(this);
@@ -38,43 +38,16 @@ export class TreeNode implements ITreeNode {
     if (this.isSelectable()) {
       return this.treeModel.isSelected(this);
     } else if (this.options.lazySelect) {
-      return this._someChildrenSelected;
+      return this.someChildrenSelected();
     } else {
       return some(this.children, (node: TreeNode) => node.isSelected);
     }
   }
 
-  @computed get isAllSelected() {
-    if (this.isSelectable()) {
-      return this.treeModel.isSelected(this);
-    } else if (this.options.lazySelect) {
-      return this._allChildrenSelected;
-    } else {
-      return every(this.children, (node: TreeNode) => node.isAllSelected);
-    }
-  }
+
   @computed get isPartiallySelected() {
     // evaluates to this._someChildrenSelected && !this._allChildrenSelected;
-    return this.isSelected && !this.isAllSelected;
-  }
-
-  get someChildrenSelected(): boolean {
-    return this._someChildrenSelected;
-  }
-
-  get allChildrenSelected(): boolean {
-    return this._allChildrenSelected;
-  }
-
-  private updateChildrenSelectionStatus(): void {
-    this._someChildrenSelected = false;
-    this.visibleChildren.forEach(child => {
-      this._someChildrenSelected =
-        this._someChildrenSelected || child.someChildrenSelected;
-      this._allChildrenSelected =
-        this._allChildrenSelected && child.allChildrenSelected;
-    });
-    this.internalSelectState = this._someChildrenSelected;
+    return this.isSelected && !this.isAllSelected();
   }
 
   @observable children: TreeNode[];
@@ -87,6 +60,7 @@ export class TreeNode implements ITreeNode {
   @computed get path(): string[] {
     return this.parent ? [...this.parent.path, this.id] : [];
   }
+
 
   get elementRef(): any {
     throw `Element Ref is no longer supported since introducing virtual scroll\n
@@ -260,11 +234,11 @@ export class TreeNode implements ITreeNode {
 
   allowDrop = (element, $event?) => {
     return this.options.allowDrop(element, { parent: this, index: 0 }, $event);
-  };
+  }
 
   allowDragoverStyling = () => {
     return this.options.allowDragoverStyling;
-  };
+  }
 
   allowDrag() {
     return this.options.allowDrag(this);
@@ -344,8 +318,8 @@ export class TreeNode implements ITreeNode {
   }
 
   toggleExpanded() {
-    this.setIsExpanded(!this.isExpanded);
-
+    const currentExpandedState = this.isExpanded;
+    this.setIsExpanded(!currentExpandedState);
     return this;
   }
 
@@ -402,12 +376,8 @@ export class TreeNode implements ITreeNode {
     this._someChildrenSelected = value;
     this.internalSelectState = value;
     if (this.isSelectable()) {
-      this.treeModel.setSelectedNode(this, status);
-    } else if (!this.options.lazySelect) {
-      /* Propogate select to leaves */
-      this.visibleChildren.forEach(child => child.setIsSelected(value));
+      this.treeModel.setSelectedNode(this, value);
     }
-
     return this;
   }
 
@@ -415,8 +385,9 @@ export class TreeNode implements ITreeNode {
     const currentStatus = this.internalSelectState;
     this.setIsSelected(!currentStatus);
     if (this.parent) {
-      // We don't wanna update our local copy of children's statues
-      //(because we get that from user action), but push parent to change.
+      /* We don't wanna update our local copy of children's statues
+      * (because we get that from user action), but push parent to change.
+      */
       this.parent.propogateStatusToParents();
     }
     this.propogateStatusDownwards();
@@ -520,20 +491,20 @@ export class TreeNode implements ITreeNode {
         this.treeModel.setSelectedNode(child, status);
       });
     }
-
-    //this.updateChildrenSelectionStatus();
   }
 
   /**
-   * All nodes ancestors except the node which have been selected/deselect
-   * 1. Update children selection status locally (all, some flags, i.e., node's local copies)
-   * 2. Push parent to update its own copy of its children's statuses
+   *  All nodes ancestors except the node which have been selected/deselect
+   *  1. Update children selection status locally (all, some flags, i.e., node's local copies)
+   *  2. Push parent to update its own copy of its children's statuses
    */
   public propogateStatusToParents(): void {
     /* Select propogates downward and deselect propogates upward */
-    if (this.options.lazySelect && this.parent) {
+    if (this.options.lazySelect) {
       this.updateChildrenSelectionStatus();
-      this.parent.propogateStatusToParents();
+      if (this.parent) {
+        this.parent.propogateStatusToParents();
+      }
     }
   }
 
@@ -549,8 +520,10 @@ export class TreeNode implements ITreeNode {
       if (this._allChildrenSelected || !this._someChildrenSelected) {
         const childStatus = this._allChildrenSelected;
         this.children.forEach(child => {
-          child.setIsSelected(childStatus);
-          child.propogateStatusDownwards();
+          if (childStatus !== child.isSelected) {
+            child.setIsSelected(childStatus);
+            child.propogateStatusDownwards();
+          }
         });
       }
     }
@@ -558,6 +531,35 @@ export class TreeNode implements ITreeNode {
 
   private emitSelectStatusChange(node: TreeNode, status: boolean): void {
     this.treeModel.setSelectedNode(node, status);
+  }
+
+  private updateChildrenSelectionStatus(): void {
+    this._someChildrenSelected = false;
+    this.visibleChildren.forEach(child => {
+      this._someChildrenSelected =
+        this._someChildrenSelected || child.someChildrenSelected();
+      this._allChildrenSelected =
+        this._allChildrenSelected && child.allChildrenSelected();
+    });
+    this.internalSelectState = this._someChildrenSelected;
+  }
+
+  private isAllSelected() {
+    if (this.isSelectable()) {
+      return this.treeModel.isSelected(this);
+    } else if (this.options.lazySelect) {
+      return this._allChildrenSelected;
+    } else {
+      return every(this.children, (node: TreeNode) => node.isAllSelected);
+    }
+  }
+
+  someChildrenSelected(): boolean {
+    return this.options.lazySelect ? this._someChildrenSelected : this.isSelected;
+  }
+
+  allChildrenSelected(): boolean {
+    return this.options.lazySelect ? this._allChildrenSelected : this.isAllSelected();
   }
 }
 
