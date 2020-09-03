@@ -153,4 +153,8 @@ export class TreeOptions {
   get dropSlotHeight(): number {
     return isNumber(this.options.dropSlotHeight) ? this.options.dropSlotHeight : 2;
   }
+
+  get lazySelect(): boolean {
+    return this.options.lazySelect !== undefined ? this.options.lazySelect : false;
+  }
 }
