@@ -1,11 +1,4 @@
-import {
-  observable,
-  computed,
-  reaction,
-  autorun,
-  action,
-  IReactionDisposer
-} from 'mobx';
+import { observable, computed, reaction, action, IReactionDisposer } from 'mobx';
 import { TreeModel } from './tree.model';
 import { TreeOptions } from './tree-options.model';
 import { ITreeNode } from '../defs/api';
@@ -318,8 +311,7 @@ export class TreeNode implements ITreeNode {
   }
 
   toggleExpanded() {
-    const currentExpandedState = this.isExpanded;
-    this.setIsExpanded(!currentExpandedState);
+    this.setIsExpanded(!this.isExpanded);
     return this;
   }
 
@@ -368,12 +360,12 @@ export class TreeNode implements ITreeNode {
   }
 
   @action setIsSelected(value) {
-    /** All children should be selected/deselected by default
-     *  And hidden indicator that this node has been selected/deselected.
-     *
-     */
+    /*
+    * All children should be selected/deselected by default
+    */
     this._allChildrenSelected = value;
     this._someChildrenSelected = value;
+    /*  And hidden indicator that this node has been selected/deselected. */
     this.internalSelectState = value;
     if (this.isSelectable()) {
       this.treeModel.setSelectedNode(this, value);
@@ -385,10 +377,11 @@ export class TreeNode implements ITreeNode {
     const currentStatus = this.internalSelectState;
     this.setIsSelected(!currentStatus);
     if (this.parent) {
-      /* We don't wanna update our local copy of children's statues
-      * (because we get that from user action), but push parent to change.
+      /* We don't wanna update our local copy of children's statuses
+      * (because we get that from user action), but ask parent to compute its
+      *  children's statuses.
       */
-      this.parent.propogateStatusToParents();
+      this.parent.propagateStatusToParents();
     }
     this.propogateStatusDownwards();
     this.emitSelectStatusChange(this, !currentStatus);
@@ -470,20 +463,6 @@ export class TreeNode implements ITreeNode {
     );
   }
 
-  // Only for testing
-  public toString(): string {
-    return (
-      '[' +
-      this.data.code +
-      ']: InternalState: ' +
-      this.internalSelectState +
-      ' , SomeChildrenSelected: ' +
-      this._someChildrenSelected +
-      ' , ALLChildrenSelected: ' +
-      this._allChildrenSelected
-    );
-  }
-
   @action public updatePendingChildStatus(status: boolean): void {
     if (this.options.lazySelect) {
       this.visibleChildren.forEach(child => {
@@ -498,18 +477,18 @@ export class TreeNode implements ITreeNode {
    *  1. Update children selection status locally (all, some flags, i.e., node's local copies)
    *  2. Push parent to update its own copy of its children's statuses
    */
-  public propogateStatusToParents(): void {
+  public propagateStatusToParents(): void {
     /* Select propogates downward and deselect propogates upward */
     if (this.options.lazySelect) {
       this.updateChildrenSelectionStatus();
       if (this.parent) {
-        this.parent.propogateStatusToParents();
+        this.parent.propagateStatusToParents();
       }
     }
   }
 
   /**
-   * All nodes decendents except the node which have been selected/deselect
+   * For all node descendants except the node itself:
    * 1. Update children selection status (not local copies, actual push)
    * 2. Push child to update its children's statuses
    */
