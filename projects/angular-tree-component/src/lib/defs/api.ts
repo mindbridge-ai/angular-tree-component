@@ -286,7 +286,7 @@ export interface ITreeOptions {
      */
     scrollContainer?: HTMLElement;
 
-    /* Should select even propogate to child nodes lazily*/
+    /* Select and deselect events propogates lazily to child and parent nodes in tree*/
     lazySelect?: boolean;
  }
 
