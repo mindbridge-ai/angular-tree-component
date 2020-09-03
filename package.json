@@ -35,7 +35,6 @@
   ],
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack src/index.js dist/index.js",
     "doc": "typedoc --module commonjs --out doc lib/defs/api.ts",
     "clean": "npm run clean:typescript && rimraf node_modules && npm cache clean",
     "clean:typescript": "rimraf dist",
