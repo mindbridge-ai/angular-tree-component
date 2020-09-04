@@ -8,7 +8,7 @@ import {
 import { TreeNode } from '../models/tree-node.model';
 
 @Component({
-  selector: 'lib-tree-node-checkbox',
+  selector: 'tree-node-checkbox',
   encapsulation: ViewEncapsulation.None,
   styles: [],
   template: `
