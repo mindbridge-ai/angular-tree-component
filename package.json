@@ -5,6 +5,7 @@
   "author": "Circlon Group <os-group@circlon.de>",
   "homepage": "https://github.com/CirclonGroup/angular-tree-component",
   "license": "MIT",
+  "main": "projects/angular-tree-component/src/public-api.ts",
   "keywords": [
     "ng",
     "angular",
