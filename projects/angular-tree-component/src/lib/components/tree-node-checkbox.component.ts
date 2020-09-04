@@ -17,8 +17,10 @@ import { TreeNode } from '../models/tree-node.model';
         class="tree-node-checkbox"
         type="checkbox"
         (click)="node.mouseAction('checkboxClick', $event)"
-        [checked]="checked"
-        [indeterminate]="indeterminate"
+        [checked]="node.someChildrenSelected()"
+        [indeterminate]="
+          node.someChildrenSelected() && !node.allChildrenSelected()
+        "
       />
     </ng-container>
   `
@@ -45,9 +47,6 @@ export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
     const { node } = changes;
     if (node) {
       this.node = node.currentValue;
-      this.checked = node.someChildrenSelected();
-      this.indeterminate =
-        node.someChildrenSelected() && !node.allChildrenSelected();
     }
   }
 }
