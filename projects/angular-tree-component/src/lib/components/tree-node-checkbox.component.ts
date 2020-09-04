@@ -1,4 +1,10 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  Input,
+  ViewEncapsulation,
+  OnInit,
+  OnChanges
+} from '@angular/core';
 import { TreeNode } from '../models/tree-node.model';
 
 @Component({
@@ -11,12 +17,37 @@ import { TreeNode } from '../models/tree-node.model';
         class="tree-node-checkbox"
         type="checkbox"
         (click)="node.mouseAction('checkboxClick', $event)"
-        [checked]="node.isSelected"
-        [indeterminate]="node.isPartiallySelected"
+        [checked]="checked"
+        [indeterminate]="indeterminate"
       />
     </ng-container>
   `
 })
-export class TreeNodeCheckboxComponent {
-  @Input() node: TreeNode;
+export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
+  @Input()
+  node: TreeNode;
+
+  public checked = false;
+  public indeterminate = false;
+
+  public ngOnInit(): void {
+    /* Set on Query */
+    if (
+      this.node.parent &&
+      this.node.options.lazySelect &&
+      this.node.parent.allChildrenSelected()
+    ) {
+      this.node.setIsSelected(this.node.parent.allChildrenSelected());
+    }
+  }
+
+  public ngOnChanges(changes): void {
+    const { node } = changes;
+    if (node) {
+      this.node = node.currentValue;
+      this.checked = node.someChildrenSelected();
+      this.indeterminate =
+        node.someChildrenSelected() && !node.allChildrenSelected();
+    }
+  }
 }

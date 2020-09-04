@@ -285,6 +285,9 @@ export interface ITreeOptions {
      * and then the scrolling container is the viewport inside the tree component
      */
     scrollContainer?: HTMLElement;
+
+    /* Select and deselect events propogates lazily to child and parent nodes in tree*/
+    lazySelect?: boolean;
  }
 
 export interface ITreeNode {
