@@ -31,7 +31,6 @@
     "angular2 tree component"
   ],
   "scripts": {
-    "prepare": "npm run build",
     "lint:lib": "ng lint angular-tree-component",
     "build:lib": "npm run lint:lib && npm run clean:dist && ng build angular-tree-component",
     "build": "npm run build:lib",
