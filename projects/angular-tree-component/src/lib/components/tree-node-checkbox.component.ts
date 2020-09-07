@@ -46,7 +46,12 @@ export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
   public ngOnChanges(changes): void {
     const { node } = changes;
     if (node) {
-      this.node = node.currentValue;
+      const { currentValue } = node;
+      this.node = currentValue;
+      this.checked = currentValue.someChildrenSelected();
+      this.indeterminate =
+        currentValue.someChildrenSelected() &&
+        !currentValue.allChildrenSelected();
     }
   }
 }
