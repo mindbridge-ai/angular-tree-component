@@ -3,7 +3,8 @@ import {
   Input,
   ViewEncapsulation,
   OnInit,
-  OnChanges
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { TreeNode } from '../models/tree-node.model';
 
@@ -27,8 +28,7 @@ import { TreeNode } from '../models/tree-node.model';
 })
 export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
   @Input()
-  node: TreeNode;
-
+  public node: TreeNode;
   public checked = false;
   public indeterminate = false;
 
@@ -43,10 +43,15 @@ export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
     }
   }
 
-  public ngOnChanges(changes): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     const { node } = changes;
     if (node) {
-      this.node = node.currentValue;
+      const { currentValue } = node;
+      this.node = currentValue;
+      this.checked = currentValue.someChildrenSelected();
+      this.indeterminate =
+        currentValue.someChildrenSelected() &&
+        !currentValue.allChildrenSelected();
     }
   }
 }
