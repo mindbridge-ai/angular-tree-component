@@ -245,7 +245,7 @@ export class TreeNode implements ITreeNode {
           this.setField('children', children);
           this._initChildren();
           if (this.options.useTriState && this.treeModel.isSelected(this)) {
-            this.setIsSelected(true);
+            this.setIsSelected(true, false);
           }
           this.children.forEach(child => {
             if (child.getField('isExpanded') && child.hasChildren) {
@@ -267,7 +267,7 @@ export class TreeNode implements ITreeNode {
       this.toggleExpanded();
       if (this.options.lazySelect && this._allChildrenSelected) {
         this.visibleChildren.forEach((child: TreeNode) => {
-          child.setIsSelected(true);
+          child.setIsSelected(true, false);
         });
       }
     }
@@ -356,7 +356,7 @@ export class TreeNode implements ITreeNode {
     return this.isLeaf || !this.children || !this.options.useTriState;
   }
 
-  @action setIsSelected(value) {
+  @action setIsSelected(value, fromUserAction: boolean) {
     /*
     * All children should be selected/deselected by default
     */
@@ -365,14 +365,31 @@ export class TreeNode implements ITreeNode {
     /*  And hidden indicator that this node has been selected/deselected. */
     this.internalSelectState = value;
     if (this.isSelectable()) {
-      this.treeModel.setSelectedNode(this, value);
+      this.treeModel.setSelectedNode(this, value, fromUserAction);
     }
     return this;
   }
 
   toggleSelected() {
     const currentStatus = this.internalSelectState;
-    this.setIsSelected(!currentStatus);
+    this.setIsSelected(!currentStatus, true);
+
+    // 
+    // A selection event won't be sent (above) for non-leaf nodes. We need that (explicit user)
+    // event to manage state properly in mb-tree.
+    //
+    // At least for now, we're going to restrict this to the multi-select case in order to
+    // minimize potential side-effects.
+    //
+    if (this.options.useCheckbox && !this.isSelectable()) {
+      if (!currentStatus) {
+         this.fireEvent({ eventName: TREE_EVENTS.select, node: this, fromUserAction: true });
+      } else {
+        this.fireEvent({ eventName: TREE_EVENTS.deselect, node: this, fromUserAction: true });
+      }
+  
+    }
+
     if (this.parent) {
       /* We don't wanna update our local copy of children's statuses
       * (because we get that from user action), but ask parent to compute its
@@ -463,8 +480,8 @@ export class TreeNode implements ITreeNode {
   @action public updatePendingChildStatus(status: boolean): void {
     if (this.options.lazySelect) {
       this.visibleChildren.forEach(child => {
-        child.setIsSelected(status);
-        this.treeModel.setSelectedNode(child, status);
+        child.setIsSelected(status, false);
+        this.treeModel.setSelectedNode(child, status, false);
       });
     }
   }
@@ -497,7 +514,7 @@ export class TreeNode implements ITreeNode {
         const childStatus = this._allChildrenSelected;
         this.children.forEach(child => {
           if (childStatus !== child.isSelected) {
-            child.setIsSelected(childStatus);
+            child.setIsSelected(childStatus, false);
             child.propogateStatusDownwards();
           }
         });
@@ -506,7 +523,7 @@ export class TreeNode implements ITreeNode {
   }
 
   private emitSelectStatusChange(node: TreeNode, status: boolean): void {
-    this.treeModel.setSelectedNode(node, status);
+    this.treeModel.setSelectedNode(node, status, false);
   }
 
   private updateChildrenSelectionStatus(): void {

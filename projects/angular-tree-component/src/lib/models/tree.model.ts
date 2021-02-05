@@ -296,14 +296,22 @@ export class TreeModel implements ITreeModel, OnDestroy {
     }
   }
 
-  @action setSelectedNode(node, value) {
+  //
+  // In order to manage state properly in mb-tree, we need to be able to differentiate
+  // between real events caused by a user check/uncheck operation associated events caused by
+  // selection of a parent or child node.
+  //
+  // We include, in the event, an indication of whether or not the selection was performed as
+  // a result of user action.
+  //
+  @action setSelectedNode(node, value, fromUserAction: boolean) {
     this.selectedLeafNodeIds = Object.assign({}, this.selectedLeafNodeIds, {[node.id]: value});
 
     if (value) {
       node.focus();
-      this.fireEvent({ eventName: TREE_EVENTS.select, node });
+      this.fireEvent({ eventName: TREE_EVENTS.select, node, fromUserAction });
     } else {
-      this.fireEvent({ eventName: TREE_EVENTS.deselect, node });
+      this.fireEvent({ eventName: TREE_EVENTS.deselect, node, fromUserAction });
     }
   }
 
