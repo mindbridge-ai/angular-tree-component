@@ -39,7 +39,7 @@ export class TreeNodeCheckboxComponent implements OnInit, OnChanges {
       this.node.options.lazySelect &&
       this.node.parent.allChildrenSelected()
     ) {
-      this.node.setIsSelected(this.node.parent.allChildrenSelected());
+      this.node.setIsSelected(this.node.parent.allChildrenSelected(), false);
     }
   }
 
