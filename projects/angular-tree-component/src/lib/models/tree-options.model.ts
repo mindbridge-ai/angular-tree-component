@@ -37,7 +37,7 @@ export const TREE_ACTIONS = {
 
 const defaultActionMapping: IActionMapping = {
   mouse: {
-    click: TREE_ACTIONS.TOGGLE_ACTIVE,
+    click: TREE_ACTIONS.TOGGLE_SELECTED,
     dblClick: null,
     contextMenu: null,
     expanderClick: TREE_ACTIONS.TOGGLE_EXPANDED,
