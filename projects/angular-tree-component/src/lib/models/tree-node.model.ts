@@ -378,16 +378,12 @@ export class TreeNode implements ITreeNode {
     // A selection event won't be sent (above) for non-leaf nodes. We need that (explicit user)
     // event to manage state properly in mb-tree.
     //
-    // At least for now, we're going to restrict this to the multi-select case in order to
-    // minimize potential side-effects.
-    //
-    if (this.options.useCheckbox && !this.isSelectable()) {
-      if (!currentStatus) {
-         this.fireEvent({ eventName: TREE_EVENTS.select, node: this, fromUserAction: true });
+    if (!this.isSelectable()) {
+      if (!currentStatus || !this.options.useCheckbox) {
+        this.fireEvent({ eventName: TREE_EVENTS.select, node: this, fromUserAction: true });
       } else {
         this.fireEvent({ eventName: TREE_EVENTS.deselect, node: this, fromUserAction: true });
-      }
-  
+      } 
     }
 
     if (this.parent) {
