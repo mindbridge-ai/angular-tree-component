@@ -46,7 +46,10 @@ export class TreeViewportComponent implements AfterViewInit, OnInit, OnDestroy {
       this.setViewport();
       this.virtualScroll.fireEvent({ eventName: TREE_EVENTS.initialized });
     });
-    let el: HTMLElement = this.elementRef.nativeElement;
+    // If a scroll container has been supplied, it's the one we should be expecting scroll events from
+    let el = (HTMLElement = this.virtualScroll.scrollContainer
+      ? this.virtualScroll.scrollContainer
+      : this.elementRef.nativeElement);
     this.ngZone.runOutsideAngular(() => {
       el.addEventListener('scroll', this.scrollEventHandler);
     });
@@ -54,7 +57,10 @@ export class TreeViewportComponent implements AfterViewInit, OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.virtualScroll.clear();
-    let el: HTMLElement = this.elementRef.nativeElement;
+    // If a scroll container has been supplied, it's the one we should be expecting scroll events from
+    let el = (HTMLElement = this.virtualScroll.scrollContainer
+      ? this.virtualScroll.scrollContainer
+      : this.elementRef.nativeElement);
     el.removeEventListener('scroll', this.scrollEventHandler);
   }
 
