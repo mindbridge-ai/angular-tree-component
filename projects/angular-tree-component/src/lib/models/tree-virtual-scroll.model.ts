@@ -23,6 +23,10 @@ export class TreeVirtualScroll {
     return this.treeModel.virtualRoot ? this.treeModel.virtualRoot.height : 0;
   }
 
+  @computed get scrollContainer() {
+    return this.treeModel.options.scrollContainer;
+  }
+
   constructor(private treeModel: TreeModel) {
     treeModel.virtualScroll = this;
     this._dispose = [autorun(() => this.fixScroll())];
