@@ -53,7 +53,8 @@
     "publish:next": "npm publish ./dist/angular-tree-component --tag next"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "projects/"
   ],
   "readme": "https://github.com/CirclonGroup/angular-tree-component/blob/master/README.md",
   "contributors": [
